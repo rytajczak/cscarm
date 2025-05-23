@@ -2,8 +2,11 @@ package main
 
 import (
 	"cscasm/internal/assembler"
+	"encoding/binary"
 	"fmt"
 	"os"
+
+	"github.com/fatih/color"
 )
 
 func main() {
@@ -12,15 +15,20 @@ func main() {
 		os.Exit(1)
 		return
 	}
+	path := os.Args[1]
 
-	file, err := os.Open(os.Args[1])
+	bytes, err := assembler.AssembleFile(path)
 	if err != nil {
-		fmt.Println("Error:", err)
+		fmt.Printf("%s\n\n", err)
 		os.Exit(1)
-		return
 	}
-	defer file.Close()
 
-	bytes := assembler.AssembleFile(file)
-	fmt.Println(bytes)
+	file, err := os.Create("a.out")
+	if err != nil {
+		red := color.New(color.FgRed).SprintFunc()
+		fmt.Printf("%s: %s\n\n", red("error"), err.Error())
+		os.Exit(1)
+	}
+
+	binary.Write(file, binary.LittleEndian, bytes)
 }
