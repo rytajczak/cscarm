@@ -45,8 +45,8 @@ func (p *Parser) ParseInstructionFromTokens(toks []*token.Token) (Instruction, e
 	// Branching
 	case slices.Contains(bbl, mnemonic):
 		return p.newBblIns(mnemonic, toks)
-	// case mnemonic == "BX":
-	// return p.newBxIns(toks)
+	case mnemonic == "BX":
+		return p.newBxIns(toks)
 	default:
 		return nil, fmt.Errorf("failed to identify mnemonic")
 	}

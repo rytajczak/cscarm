@@ -48,3 +48,27 @@ func (p *Parser) newBblIns(mnemonic string, toks []*token.Token) (*BblIns, error
 		Offset: offset,
 	}, nil
 }
+
+type BxIns struct {
+	Cond uint32
+	Rm   uint32
+}
+
+func (i *BxIns) Encoding() uint32 {
+	var e uint32
+
+	e |= i.Cond << 28
+	e |= 0b0001_0010_1111_1111_1111_0001 << 4
+	e |= i.Rm
+
+	return e
+}
+
+func (p *Parser) newBxIns(toks []*token.Token) (*BxIns, error) {
+	rm := toks[1].Literal.(uint32)
+
+	return &BxIns{
+		Cond: cond.AL,
+		Rm:   rm,
+	}, nil
+}
