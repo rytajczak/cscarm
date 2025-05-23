@@ -16,16 +16,7 @@ type Token struct {
 	Lexeme  string
 	Literal any
 	Line    int
-	Column  int
-}
-
-func (t *Token) String() string {
-	litStr := ""
-	if t.Literal != nil {
-		litStr = fmt.Sprintf(" (Lit: %v)", t.Literal)
-	}
-	return fmt.Sprintf("Type: %s, Lexeme: '%s'%s, Line: %d, Col: %d",
-		t.Type.String(), t.Lexeme, litStr, t.Line, t.Column)
+	Col     int
 }
 
 var tokenTypeStrings = map[TokenType]string{
