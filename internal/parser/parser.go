@@ -23,7 +23,7 @@ var dp = []string{"SUB", "ADD", "ORR", "SUBS"}
 var sdt = []string{"LDR", "STR"}
 
 // Branch and branch with link opcodes
-var bbl = []string{"B", "BL", "BPL"}
+var bbl = []string{"B", "BL", "BPL", "BGE"}
 
 func (p *Parser) ParseInstructionFromTokens(toks []*token.Token) (Instruction, error) {
 	p.currentIns++
