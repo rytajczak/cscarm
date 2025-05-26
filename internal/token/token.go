@@ -1,34 +1,60 @@
 package token
 
-import "fmt"
+import (
+	"fmt"
+)
 
 type TokenType int
 
 const (
-	IDENTIFIER TokenType = iota
+	ILLEGAL TokenType = iota
+	NEWLINE
+	EOF
+	COMMENT
+
+	literal_beg
+	IDENT
 	REGISTER
 	IMMEDIATE
-	LABEL
+	literal_end
+
+	delimiters_beg
+	LBRACK // [
+	LBRACE // {
+	COMMA  // ,
+
+	RBRACK // ]
+	RBRACE // }
+	COLON  // :
+	delimiters_end
 )
 
 type Token struct {
 	Type    TokenType
-	Lexeme  string
-	Literal any
+	Literal string
 	Line    int
 	Col     int
 }
 
-var tokenTypeStrings = map[TokenType]string{
-	IDENTIFIER: "IDENTIFIER",
-	REGISTER:   "REGISTER",
-	IMMEDIATE:  "IMMEDIATE",
-	LABEL:      "LABEL",
+var tokens = [...]string{
+	ILLEGAL: "ILLEGAL",
+	NEWLINE: "NEWLINE",
+	EOF:     "EOF",
+	COMMENT: "COMMENT",
+
+	IDENT:     "IDENT",
+	REGISTER:  "REGISTER",
+	IMMEDIATE: "IMMEDIATE",
+
+	LBRACK: "[",
+	LBRACE: "{",
+	COMMA:  ",",
+
+	RBRACK: "]",
+	RBRACE: "}",
+	COLON:  ":",
 }
 
-func (tt TokenType) String() string {
-	if s, ok := tokenTypeStrings[tt]; ok {
-		return s
-	}
-	return fmt.Sprintf("Unknown token type(%d)", tt)
+func (tok Token) String() string {
+	return fmt.Sprintf("type: %s, literal: %s, line: %d, col: %d", tokens[tok.Type], tok.Literal, tok.Line, tok.Col)
 }
