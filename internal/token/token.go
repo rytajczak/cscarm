@@ -56,5 +56,8 @@ var tokens = [...]string{
 }
 
 func (tok Token) String() string {
-	return fmt.Sprintf("type: %s, literal: %s, line: %d, col: %d", tokens[tok.Type], tok.Literal, tok.Line, tok.Col)
+	if tok.Literal == "" {
+		return fmt.Sprintf("type(%s) line: %d, col: %d", tokens[tok.Type], tok.Line, tok.Col)
+	}
+	return fmt.Sprintf("type(%s) literal(%s) line: %d, col: %d", tokens[tok.Type], tok.Literal, tok.Line, tok.Col)
 }
