@@ -15,9 +15,9 @@ func main() {
 		os.Exit(1)
 		return
 	}
-	path := os.Args[1]
+	filename := os.Args[1]
 
-	bytes, err := assembler.AssembleFile(path)
+	bytes, err := assembler.AssembleFile(filename)
 	if err != nil {
 		fmt.Printf("%s\n\n", err)
 		os.Exit(1)
