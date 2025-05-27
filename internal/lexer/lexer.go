@@ -47,8 +47,8 @@ func (l *Lexer) PeekToken() *token.Token {
 
 func (l *Lexer) generateToken() *token.Token {
 	l.skipWhitespace()
-
 	tok := &token.Token{Line: l.line, Col: l.col}
+	r := l.currentRune
 
 	if l.eof {
 		tok.Type = token.EOF
@@ -56,35 +56,38 @@ func (l *Lexer) generateToken() *token.Token {
 	}
 
 	switch true {
-	case l.currentRune == '@' || l.currentRune == ';':
+	case r == '@' || r == ';':
 		tok.Type = token.COMMENT
 		tok.Literal = l.readComment()
-	case unicode.IsLetter(l.currentRune) && !unicode.IsDigit(l.peekRune()):
+	case unicode.IsLetter(r) && !unicode.IsDigit(l.peekRune()):
 		tok.Type = token.IDENT
 		tok.Literal = l.readIdentifier()
-	case l.currentRune == 'r' && unicode.IsDigit(l.peekRune()):
+	case r == 'r' && unicode.IsDigit(l.peekRune()):
 		tok.Type = token.REGISTER
 		tok.Literal = l.readRegister()
-	case l.currentRune == '#':
+	case r == '#':
 		tok.Type = token.IMMEDIATE
 		tok.Literal = l.readImmediate()
-	case l.currentRune == '[':
+	case r == '[':
 		tok.Type = token.LBRACK
 		l.readRune()
-	case l.currentRune == '{':
+	case r == '{':
 		tok.Type = token.LBRACE
 		l.readRune()
-	case l.currentRune == ',':
+	case r == ',':
 		tok.Type = token.COMMA
 		l.readRune()
-	case l.currentRune == ']':
+	case r == ']':
 		tok.Type = token.RBRACK
 		l.readRune()
-	case l.currentRune == '}':
+	case r == '}':
 		tok.Type = token.RBRACE
 		l.readRune()
-	case l.currentRune == ':':
+	case r == ':':
 		tok.Type = token.COLON
+		l.readRune()
+	case r == '\n':
+		tok.Type = token.NEWLINE
 		l.readRune()
 	default:
 		tok.Type = token.ILLEGAL
@@ -130,7 +133,7 @@ func (l *Lexer) peekRune() rune {
 }
 
 func (l *Lexer) skipWhitespace() {
-	for !l.eof && unicode.IsSpace(l.currentRune) {
+	for !l.eof && unicode.IsSpace(l.currentRune) && l.currentRune != '\n' {
 		l.readRune()
 	}
 }
@@ -173,5 +176,6 @@ func (l *Lexer) readImmediate() string {
 		immediate += string(l.currentRune)
 		l.readRune()
 	}
+	immediate = strings.Trim(immediate, "#")
 	return immediate
 }
