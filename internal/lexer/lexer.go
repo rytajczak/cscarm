@@ -16,8 +16,8 @@ type Lexer struct {
 	line        int
 	col         int
 	currentRune rune
-	prevToken   *token.Token
 	nextToken   *token.Token
+	mnemOnLine  bool
 	eof         bool
 }
 
@@ -42,13 +42,6 @@ func (l *Lexer) NextToken() *token.Token {
 	return l.generateToken()
 }
 
-func (l *Lexer) PeekToken() *token.Token {
-	if l.nextToken == nil {
-		l.nextToken = l.NextToken()
-	}
-	return l.nextToken
-}
-
 func (l *Lexer) generateToken() *token.Token {
 	l.skipWhitespace()
 	r := l.currentRune
@@ -66,12 +59,14 @@ func (l *Lexer) generateToken() *token.Token {
 		switch true {
 		case slices.Contains([]string{"SP", "LR", "PC"}, strings.ToUpper(tok.Literal)):
 			tok.Type = token.REGISTER
-		case l.PeekToken().Type == token.COLON:
+		case l.currentRune == ':':
 			tok.Type = token.LABEL
-		case l.prevToken != nil && l.prevToken.Type == token.MNEMONIC:
-			tok.Type = token.IDENT
-		default:
+			return tok
+		case !l.mnemOnLine:
 			tok.Type = token.MNEMONIC
+			l.mnemOnLine = true
+		default:
+			tok.Type = token.IDENT
 		}
 	case r == 'r' && unicode.IsDigit(l.peekRune()):
 		tok.Type = token.REGISTER
@@ -101,13 +96,13 @@ func (l *Lexer) generateToken() *token.Token {
 		l.line++
 		l.col = 0
 		tok.Type = token.NEWLINE
+		l.mnemOnLine = false
 		l.readRune()
 	default:
 		tok.Type = token.ILLEGAL
 		l.readRune()
 	}
 
-	l.prevToken = tok
 	return tok
 }
 
@@ -199,5 +194,4 @@ func (l *Lexer) Reset() {
 	l.col = 0
 	l.eof = false
 	l.readRune()
-	l.prevToken = nil
 }
