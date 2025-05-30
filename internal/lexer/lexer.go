@@ -2,26 +2,32 @@ package lexer
 
 import (
 	"bufio"
-	"cscasm/internal/token"
 	"io"
+	"slices"
 	"strings"
 	"unicode"
+
+	"github.com/rytajczak/cscarm/internal/token"
 )
 
 type Lexer struct {
+	readSeeker  io.ReadSeeker
 	reader      *bufio.Reader
 	line        int
 	col         int
 	currentRune rune
-	eof         bool
+	prevToken   *token.Token
 	nextToken   *token.Token
+	eof         bool
 }
 
 func NewLexer(reader io.Reader) *Lexer {
+	readSeeker := reader.(io.ReadSeeker)
 	l := &Lexer{
-		reader: bufio.NewReader(reader),
-		line:   1,
-		col:    0,
+		readSeeker: readSeeker,
+		reader:     bufio.NewReader(readSeeker),
+		line:       1,
+		col:        0,
 	}
 	l.readRune()
 	return l
@@ -33,7 +39,6 @@ func (l *Lexer) NextToken() *token.Token {
 		l.nextToken = nil
 		return tok
 	}
-
 	return l.generateToken()
 }
 
@@ -41,27 +46,33 @@ func (l *Lexer) PeekToken() *token.Token {
 	if l.nextToken == nil {
 		l.nextToken = l.NextToken()
 	}
-
 	return l.nextToken
 }
 
 func (l *Lexer) generateToken() *token.Token {
 	l.skipWhitespace()
-	tok := &token.Token{Line: l.line, Col: l.col}
 	r := l.currentRune
-
-	if l.eof {
-		tok.Type = token.EOF
-		return tok
-	}
+	tok := &token.Token{Line: l.line, Col: l.col}
 
 	switch true {
+	case l.eof:
+		tok.Type = token.EOF
+		return tok
 	case r == '@' || r == ';':
 		tok.Type = token.COMMENT
 		tok.Literal = l.readComment()
 	case unicode.IsLetter(r) && !unicode.IsDigit(l.peekRune()):
-		tok.Type = token.IDENT
-		tok.Literal = l.readIdentifier()
+		tok.Literal = l.readText()
+		switch true {
+		case slices.Contains([]string{"SP", "LR", "PC"}, strings.ToUpper(tok.Literal)):
+			tok.Type = token.REGISTER
+		case l.PeekToken().Type == token.COLON:
+			tok.Type = token.LABEL
+		case l.prevToken != nil && l.prevToken.Type == token.MNEMONIC:
+			tok.Type = token.IDENT
+		default:
+			tok.Type = token.MNEMONIC
+		}
 	case r == 'r' && unicode.IsDigit(l.peekRune()):
 		tok.Type = token.REGISTER
 		tok.Literal = l.readRegister()
@@ -87,12 +98,16 @@ func (l *Lexer) generateToken() *token.Token {
 		tok.Type = token.COLON
 		l.readRune()
 	case r == '\n':
+		l.line++
+		l.col = 0
 		tok.Type = token.NEWLINE
 		l.readRune()
 	default:
 		tok.Type = token.ILLEGAL
 		l.readRune()
 	}
+
+	l.prevToken = tok
 	return tok
 }
 
@@ -111,13 +126,7 @@ func (l *Lexer) readRune() {
 		return
 	}
 
-	if r == '\n' {
-		l.line++
-		l.col = 1
-	} else {
-		l.col++
-	}
-
+	l.col++
 	l.currentRune = r
 }
 
@@ -152,13 +161,13 @@ func (l *Lexer) readComment() string {
 	return comment
 }
 
-func (l *Lexer) readIdentifier() string {
-	var identifier string
+func (l *Lexer) readText() string {
+	var text string
 	for unicode.IsLetter(l.currentRune) || l.currentRune == '_' {
-		identifier += string(l.currentRune)
+		text += string(l.currentRune)
 		l.readRune()
 	}
-	return identifier
+	return text
 }
 
 func (l *Lexer) readRegister() string {
@@ -178,4 +187,17 @@ func (l *Lexer) readImmediate() string {
 	}
 	immediate = strings.Trim(immediate, "#")
 	return immediate
+}
+
+func (l *Lexer) Reset() {
+	_, err := l.readSeeker.Seek(0, io.SeekStart)
+	if err != nil {
+		panic(err)
+	}
+	l.reader = bufio.NewReader(l.readSeeker)
+	l.line = 1
+	l.col = 0
+	l.eof = false
+	l.readRune()
+	l.prevToken = nil
 }
