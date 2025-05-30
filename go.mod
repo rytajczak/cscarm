@@ -1,4 +1,4 @@
-module cscasm
+module github.com/rytajczak/cscarm
 
 go 1.24.1
 
