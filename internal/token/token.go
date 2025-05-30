@@ -12,23 +12,17 @@ const (
 	EOF
 	COMMENT
 
-	literal_beg
 	MNEMONIC
 	REGISTER
 	IMMEDIATE
 	LABEL
 	IDENT
-	literal_end
 
-	delimiters_beg
 	LBRACK // [
 	LBRACE // {
-	COMMA  // ,
-
 	RBRACK // ]
 	RBRACE // }
-	COLON  // :
-	delimiters_end
+	EXCLAM // !
 )
 
 type Token struct {
@@ -52,11 +46,9 @@ var tokens = [...]string{
 
 	LBRACK: "[",
 	LBRACE: "{",
-	COMMA:  ",",
-
 	RBRACK: "]",
 	RBRACE: "}",
-	COLON:  ":",
+	EXCLAM: "!",
 }
 
 func (tok Token) String() string {

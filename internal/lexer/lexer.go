@@ -16,7 +16,6 @@ type Lexer struct {
 	line        int
 	col         int
 	currentRune rune
-	nextToken   *token.Token
 	mnemOnLine  bool
 	eof         bool
 }
@@ -34,15 +33,6 @@ func NewLexer(reader io.Reader) *Lexer {
 }
 
 func (l *Lexer) NextToken() *token.Token {
-	if l.nextToken != nil {
-		tok := l.nextToken
-		l.nextToken = nil
-		return tok
-	}
-	return l.generateToken()
-}
-
-func (l *Lexer) generateToken() *token.Token {
 	l.skipWhitespace()
 	r := l.currentRune
 	tok := &token.Token{Line: l.line, Col: l.col}
@@ -51,9 +41,6 @@ func (l *Lexer) generateToken() *token.Token {
 	case l.eof:
 		tok.Type = token.EOF
 		return tok
-	case r == '@' || r == ';':
-		tok.Type = token.COMMENT
-		tok.Literal = l.readComment()
 	case unicode.IsLetter(r) && !unicode.IsDigit(l.peekRune()):
 		tok.Literal = l.readText()
 		switch true {
@@ -61,7 +48,7 @@ func (l *Lexer) generateToken() *token.Token {
 			tok.Type = token.REGISTER
 		case l.currentRune == ':':
 			tok.Type = token.LABEL
-			return tok
+			l.readRune()
 		case !l.mnemOnLine:
 			tok.Type = token.MNEMONIC
 			l.mnemOnLine = true
@@ -80,18 +67,18 @@ func (l *Lexer) generateToken() *token.Token {
 	case r == '{':
 		tok.Type = token.LBRACE
 		l.readRune()
-	case r == ',':
-		tok.Type = token.COMMA
-		l.readRune()
 	case r == ']':
 		tok.Type = token.RBRACK
 		l.readRune()
 	case r == '}':
 		tok.Type = token.RBRACE
 		l.readRune()
-	case r == ':':
-		tok.Type = token.COLON
+	case r == '!':
+		tok.Type = token.EXCLAM
 		l.readRune()
+	case r == '@' || r == ';':
+		tok.Type = token.COMMENT
+		tok.Literal = l.readComment()
 	case r == '\n':
 		l.line++
 		l.col = 0
@@ -137,7 +124,7 @@ func (l *Lexer) peekRune() rune {
 }
 
 func (l *Lexer) skipWhitespace() {
-	for !l.eof && unicode.IsSpace(l.currentRune) && l.currentRune != '\n' {
+	for !l.eof && (unicode.IsSpace(l.currentRune) || l.currentRune == ',') && l.currentRune != '\n' {
 		l.readRune()
 	}
 }
