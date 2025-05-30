@@ -13,9 +13,11 @@ const (
 	COMMENT
 
 	literal_beg
-	IDENT
+	MNEMONIC
 	REGISTER
 	IMMEDIATE
+	LABEL
+	IDENT
 	literal_end
 
 	delimiters_beg
@@ -38,13 +40,15 @@ type Token struct {
 
 var tokens = [...]string{
 	ILLEGAL: "ILLEGAL",
-	NEWLINE: "NEWLINE",
 	EOF:     "EOF",
+	NEWLINE: "\\n",
 	COMMENT: "COMMENT",
 
-	IDENT:     "IDENT",
+	MNEMONIC:  "MNEMONIC",
 	REGISTER:  "REGISTER",
 	IMMEDIATE: "IMMEDIATE",
+	LABEL:     "LABEL",
+	IDENT:     "IDENT",
 
 	LBRACK: "[",
 	LBRACE: "{",
