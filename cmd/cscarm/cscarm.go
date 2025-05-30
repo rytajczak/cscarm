@@ -1,34 +1,51 @@
 package main
 
 import (
-	"cscasm/internal/assembler"
 	"encoding/binary"
+	"flag"
 	"fmt"
+	"log"
 	"os"
 
 	"github.com/fatih/color"
+	"github.com/rytajczak/cscarm/internal/parser"
 )
 
+const MIN_ARGUEMENTS = 2
+
 func main() {
-	if len(os.Args) < 2 {
-		fmt.Println("Usage: cscarm <file>")
-		os.Exit(1)
-		return
-	}
-	filename := os.Args[1]
+	outputFile := flag.String("o", "a.out", "The file to output to")
 
-	bytes, err := assembler.AssembleFile(filename)
+	flag.Parse()
+
+	if len(os.Args) < MIN_ARGUEMENTS {
+		fatalErrorf("no input file")
+	}
+
+	inputFile, err := os.Open(os.Args[1])
 	if err != nil {
-		fmt.Printf("%s\n\n", err)
-		os.Exit(1)
+		fatalErrorf(err)
 	}
 
-	file, err := os.Create("a.out")
+	par := parser.NewParser(inputFile)
+
+	bytes, err := par.Parse()
 	if err != nil {
-		red := color.New(color.FgRed).SprintFunc()
-		fmt.Printf("%s: %s\n\n", red("error"), err.Error())
-		os.Exit(1)
+		fatalErrorf("failed to parse bytes: %w", err)
 	}
 
-	binary.Write(file, binary.LittleEndian, bytes)
+	outFile, err := os.Create(*outputFile)
+	if err != nil {
+		fatalErrorf("failed to create output file: %w", err)
+	}
+
+	if err = binary.Write(outFile, binary.LittleEndian, bytes); err != nil {
+		fatalErrorf("failed to write binary output: %w", err)
+	}
+}
+
+func fatalErrorf(a ...any) {
+	log.SetFlags(0)
+	red := color.New(color.FgRed).SprintFunc()
+	log.Fatalf(red("error: ")+"%v", fmt.Sprint(a...))
 }
