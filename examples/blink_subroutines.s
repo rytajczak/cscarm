@@ -1,7 +1,3 @@
-.global _start
-
-.text
-_start:
     movw    r4, #0x0000
     movt    r4, #0x3f20
     add     r2, r4, #0x08
