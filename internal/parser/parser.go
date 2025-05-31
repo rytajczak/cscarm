@@ -20,15 +20,10 @@ type Parser struct {
 	currentLine  int
 }
 
-func NewParser(file string) (*Parser, error) {
-	reader, err := os.Open(file)
-	if err != nil {
-		return nil, fmt.Errorf("failed to open file")
-	}
-
-	lex := lexer.NewLexer(reader)
+func NewParser(file *os.File) (*Parser, error) {
+	lex := lexer.NewLexer(file)
 	p := &Parser{
-		file:        file,
+		file:        file.Name(),
 		lexer:       lex,
 		symbolTable: make(map[string]int),
 	}
