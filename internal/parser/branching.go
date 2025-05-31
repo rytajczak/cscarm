@@ -1,74 +1,60 @@
 package parser
 
 import (
-	"cscasm/internal/cond"
-	"cscasm/internal/token"
+	"fmt"
+
+	"github.com/rytajczak/cscarm/internal/cond"
 )
 
-type BblIns struct {
-	Cond   uint32
-	L      uint32
-	Offset uint32
-}
-
-func (i *BblIns) Encoding() uint32 {
-	var e uint32 = 0
-
-	e |= i.Cond << 28
-	e |= 0b101 << 25
-	e |= i.L << 24
-	e |= i.Offset & 0x00FFFFFF
-
-	return e
-}
-
-func (p *Parser) newBblIns(mnemonic string, toks []*token.Token) (*BblIns, error) {
+func (p *Parser) encodeBranchINS(mnemonic string) (uint32, error) {
 	c := cond.AL
-	if len(mnemonic) >= 3 {
-		c = cond.CondCodeMap[mnemonic[len(mnemonic)-2:]]
-	}
-
 	var l uint32 = 0
-	if len(mnemonic) > 1 && mnemonic[1] == 'L' {
+	switch len(mnemonic) - 2 {
+	case -1:
+	case 0:
 		l = 1
+	case 1:
+		cond, exists := cond.CondCodeMap[mnemonic[1:]]
+		if exists {
+			c = cond
+		}
+	case 2:
+		cond, exists := cond.CondCodeMap[mnemonic[2:]]
+		if exists {
+			c = cond
+		}
+		l = 1
+	default:
+		return 0, fmt.Errorf("unknown mnemonic")
 	}
 
-	var offset uint32 = 0
-	if toks[1].Type == token.IMMEDIATE {
-		offset = uint32(toks[1].Literal.(int32))
+	label, err := p.consumeIdent()
+	if err != nil {
+		return 0, err
 	}
-	if toks[1].Type == token.IDENTIFIER {
-		location := p.ST[toks[1].Lexeme]
-		offset = uint32(location - p.currentIns - 2)
+	target, exists := p.symbolTable[label]
+	if !exists {
+		return 0, fmt.Errorf("unknown label '%s'", label)
 	}
+	offset := uint32(target - p.currentLine - 2)
 
-	return &BblIns{
-		Cond:   c,
-		L:      l,
-		Offset: offset,
-	}, nil
+	e := c << 28
+	e |= 0b101 << 25
+	e |= l << 24
+	e |= offset & 0x00FFFFFF
+
+	return e, nil
 }
 
-type BxIns struct {
-	Cond uint32
-	Rm   uint32
-}
+func (p *Parser) encodeBranchExchangeINS() (uint32, error) {
+	rm, err := p.consumeRegister()
+	if err != nil {
+		return 0, fmt.Errorf("failed to parse branch: %w", err)
+	}
 
-func (i *BxIns) Encoding() uint32 {
-	var e uint32
-
-	e |= i.Cond << 28
+	e := cond.AL << 28
 	e |= 0b0001_0010_1111_1111_1111_0001 << 4
-	e |= i.Rm
+	e |= rm
 
-	return e
-}
-
-func (p *Parser) newBxIns(toks []*token.Token) (*BxIns, error) {
-	rm := toks[1].Literal.(uint32)
-
-	return &BxIns{
-		Cond: cond.AL,
-		Rm:   rm,
-	}, nil
+	return e, nil
 }

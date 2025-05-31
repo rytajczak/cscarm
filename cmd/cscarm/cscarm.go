@@ -3,7 +3,6 @@ package main
 import (
 	"encoding/binary"
 	"flag"
-	"fmt"
 	"log"
 	"os"
 
@@ -15,37 +14,34 @@ const MIN_ARGUEMENTS = 2
 
 func main() {
 	outputFile := flag.String("o", "a.out", "The file to output to")
+	log.SetFlags(0)
+	red := color.New(color.FgRed).SprintFunc()
 
 	flag.Parse()
 
 	if len(os.Args) < MIN_ARGUEMENTS {
-		fatalErrorf("no input file")
+		log.Fatalf("%s no input file", red("error:"))
 	}
 
-	inputFile, err := os.Open(os.Args[1])
+	par, err := parser.NewParser(os.Args[1])
 	if err != nil {
-		fatalErrorf(err)
+		log.Fatalf("%s %s", red("error:"), err.Error())
 	}
 
-	par := parser.NewParser(inputFile)
-
-	bytes, err := par.Parse()
-	if err != nil {
-		fatalErrorf("failed to parse bytes: %w", err)
+	bytes, errs := par.Parse()
+	for _, err := range errs {
+		log.Printf("%s\n\n", err.Error())
+	}
+	if errs != nil {
+		os.Exit(1)
 	}
 
 	outFile, err := os.Create(*outputFile)
 	if err != nil {
-		fatalErrorf("failed to create output file: %w", err)
+		log.Fatalf("%s %s", red("error:"), err.Error())
 	}
 
 	if err = binary.Write(outFile, binary.LittleEndian, bytes); err != nil {
-		fatalErrorf("failed to write binary output: %w", err)
+		log.Fatalf("%s %s", red("error:"), err.Error())
 	}
-}
-
-func fatalErrorf(a ...any) {
-	log.SetFlags(0)
-	red := color.New(color.FgRed).SprintFunc()
-	log.Fatalf(red("error: ")+"%v", fmt.Sprint(a...))
 }

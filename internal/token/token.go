@@ -32,7 +32,7 @@ type Token struct {
 	Col     int
 }
 
-var tokens = [...]string{
+var TokenMap = [...]string{
 	ILLEGAL: "ILLEGAL",
 	EOF:     "EOF",
 	NEWLINE: "\\n",
@@ -53,7 +53,7 @@ var tokens = [...]string{
 
 func (tok Token) String() string {
 	if tok.Literal == "" {
-		return fmt.Sprintf("type(%s) line: %d, col: %d", tokens[tok.Type], tok.Line, tok.Col)
+		return fmt.Sprintf("type(%s) line: %d, col: %d", TokenMap[tok.Type], tok.Line, tok.Col)
 	}
-	return fmt.Sprintf("type(%s) literal(%s) line: %d, col: %d", tokens[tok.Type], tok.Literal, tok.Line, tok.Col)
+	return fmt.Sprintf("type(%s) literal(%s) line: %d, col: %d", TokenMap[tok.Type], tok.Literal, tok.Line, tok.Col)
 }
