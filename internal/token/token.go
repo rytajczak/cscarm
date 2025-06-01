@@ -23,6 +23,8 @@ const (
 	RBRACK // ]
 	RBRACE // }
 	EXCLAM // !
+
+	MINUS // -
 )
 
 type Token struct {
@@ -49,6 +51,8 @@ var TokenMap = [...]string{
 	RBRACK: "]",
 	RBRACE: "}",
 	EXCLAM: "!",
+
+	MINUS: "-",
 }
 
 func (tok Token) String() string {

@@ -76,6 +76,9 @@ func (l *Lexer) NextToken() *token.Token {
 	case r == '!':
 		tok.Type = token.EXCLAM
 		l.readRune()
+	case r == '-':
+		tok.Type = token.MINUS
+		l.readRune()
 	case r == '@' || r == ';':
 		tok.Type = token.COMMENT
 		tok.Literal = l.readComment()
@@ -163,7 +166,7 @@ func (l *Lexer) readRegister() string {
 
 func (l *Lexer) readImmediate() string {
 	var immediate string
-	for !unicode.IsSpace(l.currentRune) {
+	for !unicode.IsSpace(l.currentRune) && l.currentRune != ']' {
 		immediate += string(l.currentRune)
 		l.readRune()
 	}
@@ -180,5 +183,6 @@ func (l *Lexer) Reset() {
 	l.line = 1
 	l.col = 0
 	l.eof = false
+	l.mnemOnLine = false
 	l.readRune()
 }

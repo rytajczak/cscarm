@@ -14,14 +14,15 @@ var dpOpCodes = map[string]uint32{
 }
 
 func (p *Parser) encodeDataProcessingINS(mnemonic string) (uint32, error) {
-	opCode, exists := dpOpCodes[mnemonic[:3]]
+	var ibit, opcode, sbit, rn, rd, op2 uint32
+
+	opcode, exists := dpOpCodes[mnemonic[:3]]
 	if !exists {
 		return 0, fmt.Errorf("failed to identiy opcode")
 	}
 
-	var s uint32 = 0
 	if len(mnemonic) == 4 && mnemonic[3] == 'S' {
-		s = 1
+		sbit = 1
 	}
 
 	rd, err := p.consumeRegister()
@@ -29,25 +30,24 @@ func (p *Parser) encodeDataProcessingINS(mnemonic string) (uint32, error) {
 		return 0, err
 	}
 
-	rn, err := p.consumeRegister()
+	rn, err = p.consumeRegister()
 	if err != nil {
 		return 0, err
 	}
 
-	var i uint32 = 0
 	if p.currentToken.Type == token.IMMEDIATE {
-		i = 1
+		ibit = 1
 	}
 
-	op2, err := p.consumeImmediate()
+	op2, _, err = p.consumeImmediate()
 	if err != nil {
 		return 0, err
 	}
 
 	e := cond.AL << 28
-	e |= i << 25
-	e |= opCode << 21
-	e |= s << 20
+	e |= ibit << 25
+	e |= opcode << 21
+	e |= sbit << 20
 	e |= rn << 16
 	e |= rd << 12
 	e |= op2

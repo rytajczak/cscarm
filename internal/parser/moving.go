@@ -10,7 +10,7 @@ func (p *Parser) encodeMovwINS() (uint32, error) {
 		return 0, err
 	}
 
-	imm16, err := p.consumeImmediate()
+	imm16, _, err := p.consumeImmediate()
 	if err != nil {
 		return 0, err
 	}
@@ -30,7 +30,7 @@ func (p *Parser) encodeMovtINS() (uint32, error) {
 		return 0, err
 	}
 
-	imm16, err := p.consumeImmediate()
+	imm16, _, err := p.consumeImmediate()
 	if err != nil {
 		return 0, err
 	}

@@ -64,6 +64,7 @@ func (p *Parser) Parse() ([]uint32, []error) {
 		if err != nil {
 			errors = append(errors, p.formatError(err))
 		}
+		fmt.Printf("%x\n", ins)
 		instructions = append(instructions, ins)
 		p.currentLine++
 		p.nextToken()
@@ -74,6 +75,7 @@ func (p *Parser) Parse() ([]uint32, []error) {
 func (p *Parser) encodeInstruction(mnemonic string) (uint32, error) {
 	p.nextToken()
 	m := strings.ToUpper(mnemonic)
+	fmt.Printf("%s ", m)
 	switch true {
 	case m == "MOVW":
 		return p.encodeMovwINS()
@@ -87,38 +89,50 @@ func (p *Parser) encodeInstruction(mnemonic string) (uint32, error) {
 		return p.encodeDataProcessingINS(m)
 	case slices.Contains([]string{"LDR", "STR"}, m):
 		return p.encodeSingleDataTransferINS(m)
+	case slices.Contains([]string{"STMEA", "LDMEA"}, m):
+		return p.encodeBlockDataTransferINS(m)
 	default:
 		return 0, nil
 	}
+}
+
+func parseRegister(reg string) uint32 {
+	var r uint64
+	switch reg {
+	case "SP":
+		r = 13
+	case "LR":
+		r = 14
+	case "PC":
+		r = 15
+	default:
+		r, _ = strconv.ParseUint(reg[1:], 0, 32)
+	}
+	return uint32(r)
 }
 
 func (p *Parser) consumeRegister() (uint32, error) {
 	if p.currentToken.Type != token.REGISTER {
 		return 0, fmt.Errorf("expected register, found %s", strings.ToLower(token.TokenMap[p.currentToken.Type]))
 	}
-	r := strings.ToUpper(p.currentToken.Literal)
-	var reg uint64
-	switch r {
-	case "SP":
-		reg = 13
-	case "LR":
-		reg = 14
-	case "PC":
-		reg = 15
-	default:
-		reg, _ = strconv.ParseUint(p.currentToken.Literal[1:], 0, 32)
-	}
+	reg := parseRegister(strings.ToUpper(p.currentToken.Literal))
 	p.nextToken()
 	return uint32(reg), nil
 }
 
-func (p *Parser) consumeImmediate() (uint32, error) {
+func (p *Parser) consumeImmediate() (uint32, bool, error) {
 	if p.currentToken.Type != token.IMMEDIATE {
-		return 0, fmt.Errorf("expected immediate, found %s", strings.ToLower(token.TokenMap[p.currentToken.Type]))
+		return 0, false, fmt.Errorf("expected immediate, found %s", strings.ToLower(token.TokenMap[p.currentToken.Type]))
 	}
-	imm, _ := strconv.ParseUint(p.currentToken.Literal, 0, 32)
+
+	var isNegative bool = false
+	if p.currentToken.Literal[0] == '-' {
+		isNegative = true
+	}
+
+	imm, _ := strconv.ParseInt(p.currentToken.Literal, 0, 32)
 	p.nextToken()
-	return uint32(imm), nil
+	return uint32(imm), isNegative, nil
 }
 
 func (p *Parser) consumeIdent() (string, error) {
