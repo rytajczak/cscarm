@@ -1,4 +1,4 @@
-## CSCASM
+## CSCARM
 
 simple assembler for a minified subset of the GNU arm assembler syntax
 
@@ -17,11 +17,11 @@ simple assembler for a minified subset of the GNU arm assembler syntax
 ## Installation
 
 ```bash
-go install github.com/CSCSAM/cscasm@latest
+go install github.com/rytajczak/cscarm
 ```
 
 ## Usage
 
 ```bash
-cscasm [options] <input_file>
+cscarm [options] <input_file>
 ```
