@@ -1,4 +1,3 @@
-_start:
     movw    sp, #0x0000             ; initialize stack pointer to 0
     movt    sp, #0x0000
     movw    r4, #0x0000
