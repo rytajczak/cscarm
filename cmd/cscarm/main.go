@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/binary"
-	"flag"
 	"log"
 	"os"
 
@@ -13,10 +12,6 @@ import (
 const MIN_ARGUEMENTS = 2
 
 func main() {
-	var outputName string
-	flag.StringVar(&outputName, "o", "a.out", "The file to output to")
-	flag.Parse()
-
 	log.SetFlags(0)
 
 	if len(os.Args) < MIN_ARGUEMENTS {
@@ -45,7 +40,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	out, err := os.Create(outputName)
+	out, err := os.Create("a.out")
 	if err != nil {
 		red := color.New(color.FgRed).SprintFunc()
 		log.Fatalf("%s %s", red("error:"), err.Error())

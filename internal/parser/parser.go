@@ -64,7 +64,6 @@ func (p *Parser) Parse() ([]uint32, []error) {
 		if err != nil {
 			errors = append(errors, p.formatError(err))
 		}
-		fmt.Printf("%x\n", ins)
 		instructions = append(instructions, ins)
 		p.currentLine++
 		p.nextToken()
@@ -75,7 +74,6 @@ func (p *Parser) Parse() ([]uint32, []error) {
 func (p *Parser) encodeInstruction(mnemonic string) (uint32, error) {
 	p.nextToken()
 	m := strings.ToUpper(mnemonic)
-	fmt.Printf("%s ", m)
 	switch true {
 	case m == "MOVW":
 		return p.encodeMovwINS()
