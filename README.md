@@ -1,6 +1,27 @@
 ## CSCASM
 
-#### Pitfalls
+simple assembler for a minified subset of the GNU arm assembler syntax
+
+## Features
+
+- Supports a subset of GNU arm assembler syntax.
+- Parses mnemonics, operands, and directives.
+- Handles basic arithmetic and logical operations.
+- Supports labels and branching instructions.
+- Generates machine code targetting the BCM2837 processor (Raspberry Pi 3).
+
+## Pitfalls
 
 - Absolutely zero robustness in mnemonic parsing.
-- Branch instruction checks for link based on the second character of the mnemonic, which may not cover all cases.
+
+## Installation
+
+```bash
+go install github.com/CSCSAM/cscasm@latest
+```
+
+## Usage
+
+```bash
+cscasm [options] <input_file>
+```
