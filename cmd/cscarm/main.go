@@ -26,11 +26,7 @@ func main() {
 	}
 	defer file.Close()
 
-	par, err := parser.NewParser(file)
-	if err != nil {
-		red := color.New(color.FgRed).SprintFunc()
-		log.Fatalf("%s %s", red("error:"), err.Error())
-	}
+	par := parser.NewParser(file)
 
 	bytes, errs := par.Parse()
 	for _, err := range errs {
