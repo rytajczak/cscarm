@@ -58,7 +58,7 @@ func (l *Lexer) NextToken() *token.Token {
 	case r == 'r' && unicode.IsDigit(l.peekRune()):
 		tok.Type = token.REGISTER
 		tok.Literal = l.readRegister()
-	case r == '#':
+	case r == '#' || unicode.IsDigit(l.currentRune):
 		tok.Type = token.IMMEDIATE
 		tok.Literal = l.readImmediate()
 	case r == '[':
