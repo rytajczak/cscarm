@@ -1,5 +1,5 @@
-	movw    sp, #0x0000
-	movt    sp, #0x0000
+    movw    sp, #0x0000
+    movt    sp, #0x0000
 
 _start:
     movw    r4, #0x0000
@@ -15,10 +15,6 @@ _start:
 
 loop:
     bl      blink
-    movw    r5, #0x4240
-    movt    r5, #0xf
-    str     r5, [sp], #4
-    bl      delay
     subs    r6, r6, #1
     bne     loop
 
@@ -40,6 +36,10 @@ blink:
     bl      delay
     add     r3, r4, #0x28
     str     r2, [r3]
+    movw    r5, #0x4240
+    movt    r5, #0xf
+    str     r5, [sp], #4
+    bl      delay
     ldr     lr, [sp, #-4]!
     bx      lr
 
