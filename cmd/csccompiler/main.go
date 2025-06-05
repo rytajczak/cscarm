@@ -6,6 +6,7 @@ import (
 	"os"
 
 	"github.com/fatih/color"
+	"github.com/rytajczak/cscarm/internal/compiler"
 	"github.com/rytajczak/cscarm/internal/parser"
 )
 
@@ -25,6 +26,19 @@ func main() {
 		log.Fatalf("%s failed to open file", red("error:"))
 	}
 	defer file.Close()
+
+	comp := compiler.NewCompiler(file)
+	if err := comp.Compile(); err != nil {
+		red := color.New(color.FgRed).SprintFunc()
+		log.Fatalf("%s failed to compile file", red("error:"))
+	}
+
+	file.Close()
+	file, err = os.Open("a.s")
+	if err != nil {
+		red := color.New(color.FgRed).SprintFunc()
+		log.Fatalf("%s failed to open file", red("error:"))
+	}
 
 	par := parser.NewParser(file)
 

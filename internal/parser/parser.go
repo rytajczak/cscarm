@@ -20,7 +20,7 @@ type Parser struct {
 	currentLine  int
 }
 
-func NewParser(file *os.File) (*Parser, error) {
+func NewParser(file *os.File) *Parser {
 	lex := lexer.NewLexer(file)
 	p := &Parser{
 		file:        file.Name(),
@@ -29,7 +29,7 @@ func NewParser(file *os.File) (*Parser, error) {
 	}
 	p.nextToken()
 
-	return p, nil
+	return p
 }
 
 func (p *Parser) nextToken() {
@@ -81,7 +81,7 @@ func (p *Parser) encodeInstruction(mnemonic string) (uint32, error) {
 		return p.encodeMovtINS()
 	case m == "BX":
 		return p.encodeBranchExchangeINS()
-	case slices.Contains([]string{"B", "BL", "BPL", "BGE"}, m):
+	case slices.Contains([]string{"B", "BL", "BPL", "BGE", "BNE"}, m):
 		return p.encodeBranchINS(m)
 	case slices.Contains([]string{"ADD", "SUB", "SUBS", "ORR"}, m):
 		return p.encodeDataProcessingINS(m)
@@ -90,7 +90,7 @@ func (p *Parser) encodeInstruction(mnemonic string) (uint32, error) {
 	case slices.Contains([]string{"STMEA", "LDMEA"}, m):
 		return p.encodeBlockDataTransferINS(m)
 	default:
-		return 0, nil
+		return 0, fmt.Errorf("unhandled mnemonic '%s'", m)
 	}
 }
 
